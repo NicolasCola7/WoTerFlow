@@ -117,7 +117,7 @@ class Utils {
          * @param lang The [Lang] of the [Model].
          *
          * @return The new [Model].
-         * @throws ThingException if it not possible to load the [Model]
+         * @throws ThingException if it's not possible to load the [Model]
          */
         fun loadModelFromPath(filePath: String, lang: Lang): Model {
             try {

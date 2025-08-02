@@ -78,7 +78,7 @@ class RDFConverter {
                         val scheme = securityDefinition.get("scheme").textValue()
                         val newNode = JsonNodeFactory.instance.objectNode()
                         newNode.put("scheme", scheme)
-                        updatedSecurityDefinitions.put("nosec_sc", newNode)
+                        updatedSecurityDefinitions.set("nosec_sc", newNode)
                     } else {
                         //  Else the prefix `td:` will be removed from `td:scheme`.
                         if (securityDefinition.has("td:scheme")) {
@@ -86,12 +86,12 @@ class RDFConverter {
                             (securityDefinition as ObjectNode).put("scheme", scheme.textValue())
                             securityDefinition.remove("td:scheme")
                         }
-                        updatedSecurityDefinitions.put(fieldName, securityDefinition)
+                        updatedSecurityDefinitions.set(fieldName, securityDefinition)
                     }
                 }
 
                 //  The field `securityDefinitions` is updated.
-                thing.put("securityDefinitions", updatedSecurityDefinitions)
+                thing.replace("securityDefinitions", updatedSecurityDefinitions)
             }
 
             //  The field `hasSecurityConfiguration` is renamed to `security`.
@@ -151,7 +151,7 @@ class RDFConverter {
 
             //  `title` field purified from prefix.
             if (thing.has("td:title"))
-                thing.put("title", thing.remove("td:title"))
+                thing.replace("title", thing.remove("td:title"))
 
             //  `version` field set to `1.1`
             thing.put("@version", "1.1")
@@ -198,7 +198,7 @@ class RDFConverter {
         try {
             val document = JsonDocument.of(jsonLdString.reader())
 
-            val expanded = JsonLd.expand(document)//.options(options11)
+            val expanded = JsonLd.expand(document).options(options11)
             val expandedDocument = expanded.get()
 
             val model = ModelFactory.createDefaultModel()

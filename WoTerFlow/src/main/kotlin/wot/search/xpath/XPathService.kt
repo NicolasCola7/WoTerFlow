@@ -35,9 +35,31 @@ class XPathService {
                     val jsonNode = ObjectMapper().valueToTree<JsonNode>(td)
                     val xmlString = XmlMapper().writeValueAsString(jsonNode)
                         .replace("@", "")
-                    val tdDocument = buildXmlDocument(xmlString)
+                    val sanitizedXmlString = sanitizeXmlString(xmlString)
+                    val tdDocument = buildXmlDocument(sanitizedXmlString)
                     val results = evaluateXPath(query, tdDocument)
                     extractMatchingTD(results, map)
+                }
+        }
+
+        /**
+         * Sanitizes XML strings by converting invalid element names to valid XML identifiers.
+         * Replaces characters that are not allowed in XML element names (colons, forward slashes,
+         * dots, hyphens) with underscores to ensure the XML can be parsed successfully.
+         *
+         * @param xmlString The XML string containing potentially invalid element names
+         * @return A sanitized XML string with valid element names
+         */
+        private fun sanitizeXmlString(xmlString: String): String {
+            return xmlString
+                .replace(Regex("<(/?)([^>\\s]+)")) { matchResult ->
+                    val prefix = matchResult.groupValues[1]
+                    val elementName = matchResult.groupValues[2]
+                        .replace("/", "_")
+                        .replace(":", "_")
+                        .replace(".", "_")
+                        .replace("-", "_")
+                    "<${prefix}${elementName}"
                 }
         }
 
@@ -51,7 +73,6 @@ class XPathService {
         private fun buildXmlDocument(xmlString: String): XdmNode {
             val documentBuilder = processor.newDocumentBuilder()
             val xmlSource = StreamSource(StringReader(xmlString))
-
             return documentBuilder.build(xmlSource)
         }
 

@@ -39,7 +39,7 @@ dependencies {
     //implementation("org.apache.jena:jena-fuseki-main:$jena_version")
 
 
-    //  JSONLD    
+    //  JSONLD
     // https://mvnrepository.com/artifact/com.apicatalog/titanium-json-ld
     implementation("com.apicatalog:titanium-json-ld:1.3.2")
 

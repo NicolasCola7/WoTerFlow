@@ -43,7 +43,7 @@ class EventController(val thingCreatedSseFlow: MutableSharedFlow<SseEvent>,
      * @param lastReceivedId The last received ID. Events with IDs greater than this will be included.
      * @param eventTypes The types of events to include.
      *
-     * @return A lsit of [SseEvent] representig past events matching the criteria.
+     * @return A list of [SseEvent] representing past events matching the criteria.
      */
     fun getPastEvents(lastReceivedId: String?, vararg eventTypes: EventType): List<SseEvent> {
         //  Early return if pastEvents is empty or the lastReceivedId is null
@@ -60,7 +60,7 @@ class EventController(val thingCreatedSseFlow: MutableSharedFlow<SseEvent>,
     }
 
     /**
-     * Notifies withing the corresponding [SseEvent] stream.
+     * Notifies within the corresponding [SseEvent] stream.
      *
      * @param eventType The [EventType] of interest.
      * @param eventData The [SseEvent] data.
