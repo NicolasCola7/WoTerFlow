@@ -76,29 +76,5 @@ The main goal of this implementation is to provide a high-performance and system
 
 ### Testing Suite
 
-This project has been tested via the testing suite at the following repository: [_farshidtz:
-WoT Discovery Testing_](https://github.com/farshidtz/wot-discovery-testing)
-
-Some editing has been done to the testing suite:
-
-###### [search_test.go](https://github.com/farshidtz/wot-discovery-testing/blob/main/directory/search_test.go):
-```
-func TestSPARQL(t *testing.T) {
-
-    const query = `select * { ?s ?p ?o }limit 5`
-    ...
-}
-```
-the query has been modified to support the RDF Named Graph structure as follows:
-```
-func TestSPARQL(t *testing.T) {
-
-	const query = `SELECT ?s ?p ?o ?g WHERE { GRAPH ?g { ?s ?p ?o }	} LIMIT 5`
-	...
-}
-```
-
-
-## Release
-
----
+This project has been tested via the testing suite at the following repository: [_NicolasCola7:
+WoTerFlow-testing_](https://github.com/NicolasCola7/WoTerFlow-testing)
