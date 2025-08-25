@@ -23,7 +23,7 @@ class SSEUtils {
          * @param eventsList List of past [SseEvent] events to notify.
          * @param eventsFlows Flow to send notifications to.
          */
-        suspend fun ApplicationCall.respondSse(eventsList: List<SseEvent>,                                               vararg eventsFlows: Pair<EventType, Flow<SseEvent>>) {
+        suspend fun ApplicationCall.respondSse(eventsList: List<SseEvent>, vararg eventsFlows: Pair<EventType, Flow<SseEvent>>) {
             with(response) {
                 header(HttpHeaders.CacheControl, "no-cache")
                 header(HttpHeaders.Connection, "keep-alive")

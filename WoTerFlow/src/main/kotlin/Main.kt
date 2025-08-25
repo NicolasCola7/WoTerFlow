@@ -76,11 +76,13 @@ fun main(args: Array<String>) {
             val createdSseFlow = MutableSharedFlow<SseEvent>()
             val updatedSseFlow = MutableSharedFlow<SseEvent>()
             val deletedSseFlow = MutableSharedFlow<SseEvent>()
+            val queryNotificationSseFlow = mutableMapOf<Long, MutableSharedFlow<SseEvent>>()
 
             val eventController = EventController(
                 createdSseFlow,
                 updatedSseFlow,
-                deletedSseFlow
+                deletedSseFlow,
+                queryNotificationSseFlow
             )
 
             val ts = ThingDescriptionService(rdf_db, thingsMap)
@@ -89,7 +91,6 @@ fun main(args: Array<String>) {
             val directory = Directory(rdf_db, thingsMap, tc, eventController)
 
             ts.refreshJsonDb()
-            //tc.initializeDatabaseIfNeeded()
 
             val routesController = DirectoryRoutesController(directory)
 

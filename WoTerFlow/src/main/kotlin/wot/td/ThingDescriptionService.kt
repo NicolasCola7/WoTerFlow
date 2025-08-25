@@ -13,6 +13,7 @@ import org.apache.jena.riot.Lang
 import utils.RDFConverter
 import utils.Utils
 import wot.directory.DirectoryConfig
+import wot.events.NotificationQuery
 import wot.search.sparql.SparqlService
 import java.time.Instant
 import java.util.UUID
@@ -66,7 +67,6 @@ class ThingDescriptionService(dbRdf: Dataset, private val thingsMap: MutableMap<
 
             //  Clear the things map and populate it back with the updated dataset
             thingsMap.clear()
-
 
             //  Update the in-memory cache with the refreshed JSON representation
             things.forEach { thing ->
@@ -527,6 +527,11 @@ class ThingDescriptionService(dbRdf: Dataset, private val thingsMap: MutableMap<
         } finally {
             this.end()
         }
+    }
+
+    fun executeNotificationQuery(query: NotificationQuery): String {
+        val queryResult = SparqlService.executeQuery(query.query, query.resultFormat, rdfDataset)
+        return queryResult.toString()
     }
 
     /**

@@ -1,7 +1,17 @@
 package wot.events
 
+import exceptions.UnsupportedSparqlQueryException
+import io.ktor.http.HttpHeaders
+import io.ktor.server.application.ApplicationCall
+import io.ktor.server.request.header
+import io.ktor.server.request.receive
 import io.ktor.util.toLowerCasePreservingASCIIRules
 import kotlinx.coroutines.flow.MutableSharedFlow
+import org.apache.jena.query.Query
+import org.apache.jena.query.QueryFactory
+import org.apache.jena.query.Syntax
+import org.apache.jena.sparql.core.Var
+import wot.search.sparql.SparqlController
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.atomic.AtomicLong
 
@@ -13,10 +23,13 @@ import java.util.concurrent.atomic.AtomicLong
  */
 class EventController(val thingCreatedSseFlow: MutableSharedFlow<SseEvent>,
                       val thingUpdatedSseFlow: MutableSharedFlow<SseEvent>,
-                      val thingDeletedSseFlow: MutableSharedFlow<SseEvent>
+                      val thingDeletedSseFlow: MutableSharedFlow<SseEvent>,
+                      val queryNotificationSseFlow: MutableMap<Long, MutableSharedFlow<SseEvent>>
 ) {
     private val pastEvents = CopyOnWriteArrayList<SseEvent>()
     private val idCounter = AtomicLong(0)
+    val queries = mutableMapOf<Long, NotificationQuery>()
+    private val queryIDsCounter = AtomicLong(0)
 
     /**
      * Appends the new [SseEvent] to the events list that have already been created.
@@ -65,10 +78,10 @@ class EventController(val thingCreatedSseFlow: MutableSharedFlow<SseEvent>,
      * @param eventType The [EventType] of interest.
      * @param eventData The [SseEvent] data.
      */
-    suspend fun notify(eventType: EventType, eventData: String) {
+    suspend fun notify(eventType: EventType, eventData: String, queryId: Long = 0) {
         val event = addEvent(eventType, eventData)
 
-        redirectEventFlow(eventType, event)
+        redirectEventFlow(eventType, event, queryId)
     }
 
     /**
@@ -77,7 +90,7 @@ class EventController(val thingCreatedSseFlow: MutableSharedFlow<SseEvent>,
      * @param eventType The [EventType] of interest.
      * @param event The event to emit on the stream.
      */
-    private suspend fun redirectEventFlow(eventType: EventType, event: SseEvent) {
+    private suspend fun redirectEventFlow(eventType: EventType, event: SseEvent, queryId: Long = 0) {
         when (eventType) {
             EventType.THING_CREATED -> {
                 thingCreatedSseFlow.emit(event)
@@ -88,6 +101,49 @@ class EventController(val thingCreatedSseFlow: MutableSharedFlow<SseEvent>,
             EventType.THING_DELETED -> {
                 thingDeletedSseFlow.emit(event)
             }
+            EventType.QUERY_NOTIFICATION -> {
+                queryNotificationSseFlow[queryId]!!.emit(event)
+            }
         }
     }
+
+    suspend fun addNotificationQuery(call: ApplicationCall): Long {
+        var query: String? = call.receive()
+        val accept = call.request.header(HttpHeaders.Accept)
+
+        if (query.isNullOrEmpty()) {
+            throw Exception("The request body is empty.")
+        }
+
+        val parsedQuery = QueryFactory.create(query, Syntax.syntaxSPARQL_11)
+        parsedQuery.addSubjectVariable()
+        query = parsedQuery.toString()
+
+        val format = SparqlController.validateNotificationQueryFormat(parsedQuery, accept)
+            ?: throw UnsupportedSparqlQueryException("Mime format not supported")
+
+        val queryId = queryIDsCounter.incrementAndGet()
+        val notificationQuery = NotificationQuery(
+            id = queryId,
+            query = query,
+            resultFormat = format,
+        )
+
+        queries.put(queryId, notificationQuery)
+
+        if(!queryNotificationSseFlow.containsKey(queryId)) {
+            queryNotificationSseFlow.put(queryId, MutableSharedFlow())
+        }
+
+        return queryId
+    }
+
+    fun Query.addSubjectVariable(): Query {
+        if (!this.resultVars.contains("s")) {
+            this.project.add(Var.alloc("s"))
+        }
+
+        return this
+    }
+
 }

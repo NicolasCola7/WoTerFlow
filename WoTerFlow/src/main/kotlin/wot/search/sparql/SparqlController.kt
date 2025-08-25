@@ -12,6 +12,7 @@ import io.ktor.server.request.receiveText
 import io.ktor.server.response.header
 import io.ktor.server.response.respond
 import org.apache.jena.query.Dataset
+import org.apache.jena.query.Query
 import org.apache.jena.query.QueryFactory
 import org.apache.jena.query.Syntax
 import org.apache.jena.shared.NotFoundException
@@ -85,6 +86,21 @@ class SparqlController {
             }
         }
 
+        fun validateNotificationQueryFormat(query: Query, mimeType: String?): ResultsFormat? {
+            return when {
+                query.isSelectType -> {
+                    when (mimeType) {
+                        MIME_SPARQL_XML -> ResultsFormat.FMT_RS_XML
+                        MIME_SPARQL_CSV -> ResultsFormat.FMT_RS_CSV
+                        MIME_SPARQL_TSV -> ResultsFormat.FMT_RS_TSV
+                        else -> ResultsFormat.FMT_RS_JSON
+                    }
+                }
+
+                else -> throw Exception("Only SELECT Sparql queries are supported for Query Notifications")
+            }
+        }
+
         /**
          * Determines the appropriate [ResultsFormat] MIME type.
          *
@@ -92,7 +108,7 @@ class SparqlController {
          *
          * @return The MIME type.
          */
-        private fun getResponseType(format: ResultsFormat): String {
+        fun getResponseType(format: ResultsFormat): String {
             return when (format) {
                 ResultsFormat.FMT_RS_JSON -> MIME_SPARQL_JSON
                 ResultsFormat.FMT_RS_XML -> MIME_SPARQL_XML

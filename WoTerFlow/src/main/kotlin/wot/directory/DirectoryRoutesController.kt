@@ -1,5 +1,6 @@
 package wot.directory
 
+import exceptions.UnsupportedSparqlQueryException
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.response.respondRedirect
@@ -12,6 +13,7 @@ import io.ktor.server.routing.put
 import io.ktor.server.routing.post
 import io.ktor.server.routing.patch
 import io.ktor.server.routing.delete
+import kotlinx.coroutines.flow.merge
 
 import utils.SSEUtils.Companion.respondSse
 import utils.Utils
@@ -116,14 +118,16 @@ class DirectoryRoutesController(private val directory: Directory) {
                         lastEventId,
                         EventType.THING_CREATED,
                         EventType.THING_UPDATED,
-                        EventType.THING_DELETED
+                        EventType.THING_DELETED,
+                        EventType.QUERY_NOTIFICATION
                     )
 
                     call.respondSse(
                         eventsList,
                         EventType.THING_CREATED to directory.eventController.thingCreatedSseFlow,
                         EventType.THING_UPDATED to directory.eventController.thingUpdatedSseFlow,
-                        EventType.THING_DELETED to directory.eventController.thingDeletedSseFlow)
+                        EventType.THING_DELETED to directory.eventController.thingDeletedSseFlow,
+                        EventType.QUERY_NOTIFICATION to directory.eventController.queryNotificationSseFlow.values.merge())
                 }
             }
 
@@ -171,6 +175,27 @@ class DirectoryRoutesController(private val directory: Directory) {
                     eventsList,
                     EventType.THING_DELETED to directory.eventController.thingDeletedSseFlow
                 )
+            }
+
+            post("/query_notification") {
+                try {
+                    val queryId = directory.eventController.addNotificationQuery(call)
+                    val lastEventId = call.request.headers["Last-Event-ID"]
+
+                    val eventsList = directory.eventController.getPastEvents(
+                        lastEventId,
+                        EventType.QUERY_NOTIFICATION
+                    )
+
+                    call.respondSse(
+                        eventsList,
+                        (EventType.QUERY_NOTIFICATION to directory.eventController.queryNotificationSseFlow[queryId]!!)
+                    )
+                } catch (e: UnsupportedSparqlQueryException) {
+                    call.respond(HttpStatusCode.BadRequest, "${e.message}")
+                } catch (e: Exception) {
+                    call.respond(HttpStatusCode.InternalServerError, "An error occurred: ${e.message}")
+                }
             }
         }
 

@@ -199,6 +199,7 @@ class ThingDescriptionController(service: ThingDescriptionService, private val e
                 call.respond(HttpStatusCode.Created)
 
                 eventController.notify(EventType.THING_CREATED, "{\n\"id\": \"${pair.first}\"\n}")
+                executeAndNotifyQueries(pair.first)
             }
         }.onFailure { e ->
             handleException(e, call)
@@ -248,6 +249,8 @@ class ThingDescriptionController(service: ThingDescriptionService, private val e
                     call.respond(HttpStatusCode.NoContent)
                     eventController.notify(EventType.THING_UPDATED, "{ \n\"id\": \"${thingUpdate.first}\" }")
                 }
+
+                executeAndNotifyQueries(thingUpdate.first)
             }
         }.onFailure { e ->
             handleException(e, call)
@@ -279,6 +282,7 @@ class ThingDescriptionController(service: ThingDescriptionService, private val e
 
                 call.respond(HttpStatusCode.NoContent)
                 eventController.notify(EventType.THING_UPDATED, "{ \n\"id\": \"${thingId}\" }")
+                executeAndNotifyQueries(id)
             }
         }.onFailure { e ->
             handleException(e, call)
@@ -301,6 +305,32 @@ class ThingDescriptionController(service: ThingDescriptionService, private val e
             eventController.notify(EventType.THING_DELETED, "{ \n\"id\": \"${id}\" }")
         }.onFailure { e ->
             handleException(e, call)
+        }
+    }
+
+    suspend fun executeAndNotifyQueries(thingId: String) {
+        for (id in eventController.queries.keys) {
+            val query = eventController.queries[id]
+            val stringQueryResult = ts.executeNotificationQuery(query!!)
+            val jsonQueryResult = Utils.toJson(stringQueryResult)
+
+            val bindings = jsonQueryResult.get("results").get("bindings")
+            if (bindings.isEmpty) {
+                continue
+            }
+
+            for (td in bindings) {
+                val resultTdId = td.get("s").get("value").asText()
+
+                if (resultTdId.equals(thingId)) {
+                    eventController.notify(
+                        EventType.QUERY_NOTIFICATION,
+                        "{ \n\"id\": \"${thingId}\" }",
+                        id
+                    )
+                    break
+                }
+            }
         }
     }
 

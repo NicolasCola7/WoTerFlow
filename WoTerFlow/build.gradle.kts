@@ -41,7 +41,9 @@ dependencies {
 
     //  JSONLD
     // https://mvnrepository.com/artifact/com.apicatalog/titanium-json-ld
-    implementation("com.apicatalog:titanium-json-ld:1.3.2")
+    //implementation("com.apicatalog:titanium-json-ld:1.3.2")
+    // modified titanium-json-ld version
+   implementation(files("libs/titanium-json-ld-1.4.1-dr-snapshot.jar"))
 
     // KTOR
     // https://mvnrepository.com/artifact/io.ktor/ktor-server-core
@@ -59,8 +61,7 @@ dependencies {
     // https://mvnrepository.com/artifact/io.ktor/ktor-serialization-jackson
     implementation("io.ktor:ktor-serialization-jackson:$ktor_version")
 
-
-
+    
     // JSONPath
     // https://mvnrepository.com/artifact/com.jayway.jsonpath/json-path
     implementation("com.jayway.jsonpath:json-path:2.8.0")
@@ -119,6 +120,20 @@ tasks {
         from("src/main/resources"){
             include("**/*.*")
         }
+    }
+
+    distZip {
+        dependsOn(shadowJar)
+    }
+    distTar {
+        dependsOn(shadowJar)
+    }
+    startScripts {
+        dependsOn(shadowJar)
+    }
+
+    startShadowScripts {
+        dependsOn(jar)
     }
 }
 

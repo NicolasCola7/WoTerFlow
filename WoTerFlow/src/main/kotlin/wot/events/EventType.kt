@@ -8,7 +8,8 @@ package wot.events
 enum class EventType(val event: String) {
     THING_CREATED("thing_created"),
     THING_UPDATED("thing_updated"),
-    THING_DELETED("thing_deleted");
+    THING_DELETED("thing_deleted"),
+    QUERY_NOTIFICATION("query_notification");
 
     companion object {
         /**

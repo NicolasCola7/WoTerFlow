@@ -294,9 +294,9 @@ class Utils {
          *
          * @return The converted [ObjectNode].
          */
-        fun toJson(td: String): ObjectNode {
+        fun toJson(str: String): ObjectNode {
             val objectMapper = ObjectMapper()
-            return objectMapper.readValue<ObjectNode>(td)
+            return objectMapper.readValue<ObjectNode>(str)
         }
 
         /**
