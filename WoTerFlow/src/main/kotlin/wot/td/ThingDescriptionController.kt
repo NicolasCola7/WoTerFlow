@@ -308,6 +308,11 @@ class ThingDescriptionController(service: ThingDescriptionService, private val e
         }
     }
 
+    /**
+     * Executes all queries and notify the corresponding SSE flow if the query's result matches the td's id
+     *
+     * @param thingId the id of td the query result should match
+     */
     suspend fun executeAndNotifyQueries(thingId: String) {
         for (id in eventController.queries.keys) {
             val query = eventController.queries[id]

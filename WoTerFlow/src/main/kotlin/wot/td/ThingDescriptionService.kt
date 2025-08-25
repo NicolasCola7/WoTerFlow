@@ -529,6 +529,11 @@ class ThingDescriptionService(dbRdf: Dataset, private val thingsMap: MutableMap<
         }
     }
 
+    /**
+     * Executes a notification query
+     *
+     * @param query [NotificationQuery] the query to execute
+     */
     fun executeNotificationQuery(query: NotificationQuery): String {
         val queryResult = SparqlService.executeQuery(query.query, query.resultFormat, rdfDataset)
         return queryResult.toString()

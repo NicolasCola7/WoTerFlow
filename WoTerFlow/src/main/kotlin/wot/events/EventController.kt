@@ -107,6 +107,14 @@ class EventController(val thingCreatedSseFlow: MutableSharedFlow<SseEvent>,
         }
     }
 
+    /**
+     *  Registers a new notification SPARQL query and prepares a corresponding SSE flow
+     *
+     *  @param call The [ApplicationCall] containing the request with the SPARQL query and Accept header.
+     *  @return The generated unique id for the registered notification query.
+     *  @throws Exception If the request body is empty.
+     *  @throws UnsupportedSparqlQueryException If the requested mime format is not supported for notifications.
+     */
     suspend fun addNotificationQuery(call: ApplicationCall): Long {
         var query: String? = call.receive()
         val accept = call.request.header(HttpHeaders.Accept)
@@ -138,6 +146,9 @@ class EventController(val thingCreatedSseFlow: MutableSharedFlow<SseEvent>,
         return queryId
     }
 
+    /**
+     * Ensures the given SPARQL [Query] projects a subject variable "s".
+     */
     fun Query.addSubjectVariable(): Query {
         if (!this.resultVars.contains("s")) {
             this.project.add(Var.alloc("s"))

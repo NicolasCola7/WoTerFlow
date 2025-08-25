@@ -86,6 +86,15 @@ class SparqlController {
             }
         }
 
+        /**
+         * Validates the format of a SPARQL notification [query] and determines the appropriate [ResultsFormat] based on the query type.
+         *
+         * @param query The SPARQL query to evaluate.
+         * @param mimeType The desired MIME type for the query result.
+         *
+         * @return The result format corresponding to the query type and MIME type.
+         * @throws Exception If the query type is not supported or an invalid MIME type is provided.
+         */
         fun validateNotificationQueryFormat(query: Query, mimeType: String?): ResultsFormat? {
             return when {
                 query.isSelectType -> {
