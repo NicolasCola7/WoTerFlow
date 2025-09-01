@@ -1,0 +1,48 @@
+{
+  "@context": "https://www.w3.org/2022/wot/td/v1.1",
+  "@type": "Thing",
+  "id": "urn:uuid:0804d572-cce8-422a-bb7c-4412fcd56f06",
+  "title": "Modified Title",
+  "description": "Measures relative humidity in the garden area",
+  "securityDefinitions": {
+    "nosec_sc": {
+      "scheme": "nosec"
+    }
+  },
+  "security": "nosec_sc",
+  "properties": {
+    "humidity": {
+      "type": "number",
+      "readOnly": true,
+      "observable": true,
+      "forms": [
+        {
+          "href": "https://garden.example.com/sensors/humidity-001/humidity",
+          "op": ["readproperty", "observeproperty"]
+        }
+      ]
+    },
+    "location": {
+      "type": "string",
+      "const": "garden",
+      "readOnly": true,
+      "forms": [
+        {
+          "href": "https://garden.example.com/sensors/humidity-001/location",
+          "op": "readproperty"
+        }
+      ]
+    },
+    "coordinates": {
+      "type": "object",
+      "const": {"lat": 45.464211, "long": 9.191383},
+      "readOnly": true,
+      "forms": [
+        {
+          "href": "https://garden.example.com/sensors/humidity-001/coordinates",
+          "op": "readproperty"
+        }
+      ]
+    }
+  }
+}

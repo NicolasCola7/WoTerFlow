@@ -6,4 +6,3 @@ pluginManagement {
 }
 rootProject.name = "WoTerFlow"
 include("src")
-

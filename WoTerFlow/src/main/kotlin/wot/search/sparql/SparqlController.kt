@@ -82,7 +82,7 @@ class SparqlController {
                 }
 
                 parsedQuery.isConstructType || parsedQuery.isDescribeType -> ResultsFormat.FMT_RDF_TURTLE
-                else -> throw Exception("Supported SPARQL queries are SELECT, ASK, DESCRIBE, and CONSTRUCT")
+                else -> throw UnsupportedSparqlQueryException("Supported SPARQL queries are SELECT, ASK, DESCRIBE, and CONSTRUCT")
             }
         }
 
@@ -106,7 +106,7 @@ class SparqlController {
                     }
                 }
 
-                else -> throw Exception("Only SELECT Sparql queries are supported for Query Notifications")
+                else -> throw UnsupportedSparqlQueryException("Only SELECT Sparql queries are supported for Query Notifications")
             }
         }
 

@@ -1,16 +1,17 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
-plugins {
-    kotlin("jvm") version "1.9.20"
-    application
-    id("com.github.johnrengelman.shadow") version "7.1.0"
-}
-
 group = "io.github.dvgniele"
 version = "0.1.9"
 
-val ktor_version = "2.3.5"
+val ktor_version = "3.2.3"
 val jena_version = "4.8.0"
+val kotlin_version = "2.2.0"
+
+plugins {
+    kotlin("jvm") version "2.2.0"
+    application
+    id("com.github.johnrengelman.shadow") version "7.1.0"
+}
 
 repositories {
     mavenCentral()
@@ -43,7 +44,7 @@ dependencies {
     // https://mvnrepository.com/artifact/com.apicatalog/titanium-json-ld
     //implementation("com.apicatalog:titanium-json-ld:1.3.2")
     // modified titanium-json-ld version
-   implementation(files("libs/titanium-json-ld-1.4.1-dr-snapshot.jar"))
+    implementation(files("libs/titanium-json-ld-1.4.1-dr-snapshot.jar"))
 
     // KTOR
     // https://mvnrepository.com/artifact/io.ktor/ktor-server-core
@@ -51,6 +52,7 @@ dependencies {
 
     // https://mvnrepository.com/artifact/io.ktor/ktor-server-cio
     implementation("io.ktor:ktor-server-cio:$ktor_version")
+
 
     // https://mvnrepository.com/artifact/io.ktor/ktor-server-call-logging
     implementation("io.ktor:ktor-server-call-logging:$ktor_version")
@@ -61,10 +63,9 @@ dependencies {
     // https://mvnrepository.com/artifact/io.ktor/ktor-serialization-jackson
     implementation("io.ktor:ktor-serialization-jackson:$ktor_version")
 
-    
     // JSONPath
     // https://mvnrepository.com/artifact/com.jayway.jsonpath/json-path
-    implementation("com.jayway.jsonpath:json-path:2.8.0")
+    implementation("com.jayway.jsonpath:json-path:2.9.0")
 
     // XPath
     // https://mvnrepository.com/artifact/net.sf.saxon/Saxon-HE
@@ -73,15 +74,13 @@ dependencies {
     // https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.15.3")
 
-
-
     // https://mvnrepository.com/artifact/ch.qos.logback/logback-classic
-    implementation("ch.qos.logback:logback-classic:1.4.11")
+    implementation("ch.qos.logback:logback-classic:1.5.13")
 
 
     //  TESTING
     testImplementation(kotlin("test"))
-
+    testImplementation("io.ktor:ktor-server-test-host:${ktor_version}")
     // Rest Assured
     // https://mvnrepository.com/artifact/io.rest-assured/rest-assured
     testImplementation("io.rest-assured:rest-assured:5.3.0")
@@ -93,54 +92,51 @@ dependencies {
     testImplementation("com.squareup.okhttp3:okhttp:4.11.0")
 
     // JUnit
-    // https://mvnrepository.com/artifact/junit/junit
-    //testImplementation("junit:junit:4.13.2")
-
     // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.3")
 
+    implementation("io.ktor:ktor-client-core:${ktor_version}")
 }
 
-tasks.test {
-    //useJUnitPlatform()
-}
+    tasks {
+        processResources {
+            duplicatesStrategy = DuplicatesStrategy.INCLUDE
+        }
 
-tasks {
-    compileKotlin {
-        kotlinOptions.jvmTarget = "20"
-    }
+        shadowJar {
+            archiveFileName.set("woterflow-${project.version}.jar")
 
-    processResources {
-        duplicatesStrategy = DuplicatesStrategy.INCLUDE
-    }
+            from("src/main/resources") {
+                include("**/*.*")
+            }
+        }
 
-    shadowJar {
-        archiveFileName.set("woterflow-${project.version}.jar")
+        distZip {
+            dependsOn(shadowJar)
+        }
+        distTar {
+            dependsOn(shadowJar)
+        }
+        startScripts {
+            dependsOn(shadowJar)
+        }
 
-        from("src/main/resources"){
-            include("**/*.*")
+        startShadowScripts {
+            dependsOn(jar)
+        }
+
+        test {
+            useJUnitPlatform()
         }
     }
 
-    distZip {
-        dependsOn(shadowJar)
-    }
-    distTar {
-        dependsOn(shadowJar)
-    }
-    startScripts {
-        dependsOn(shadowJar)
+    kotlin {
+        compilerOptions {
+            optIn.add("kotlin.RequiresOptIn")
+        }
+        jvmToolchain(20)
     }
 
-    startShadowScripts {
-        dependsOn(jar)
+    application {
+        mainClass.set("MainKt")
     }
-}
-
-kotlin {
-    jvmToolchain(20)
-}
-
-application {
-    mainClass.set("MainKt")
-}

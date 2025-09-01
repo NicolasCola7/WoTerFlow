@@ -3,6 +3,7 @@ package wot.directory
 import exceptions.UnsupportedSparqlQueryException
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
+import io.ktor.server.plugins.BadRequestException
 import io.ktor.server.response.respondRedirect
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
@@ -192,6 +193,8 @@ class DirectoryRoutesController(private val directory: Directory) {
                         (EventType.QUERY_NOTIFICATION to directory.eventController.queryNotificationSseFlow[queryId]!!)
                     )
                 } catch (e: UnsupportedSparqlQueryException) {
+                    call.respond(HttpStatusCode.BadRequest, "${e.message}")
+                }catch(e: BadRequestException) {
                     call.respond(HttpStatusCode.BadRequest, "${e.message}")
                 } catch (e: Exception) {
                     call.respond(HttpStatusCode.InternalServerError, "An error occurred: ${e.message}")

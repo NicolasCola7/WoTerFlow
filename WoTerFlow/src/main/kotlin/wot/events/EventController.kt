@@ -3,6 +3,7 @@ package wot.events
 import exceptions.UnsupportedSparqlQueryException
 import io.ktor.http.HttpHeaders
 import io.ktor.server.application.ApplicationCall
+import io.ktor.server.plugins.BadRequestException
 import io.ktor.server.request.header
 import io.ktor.server.request.receive
 import io.ktor.util.toLowerCasePreservingASCIIRules
@@ -120,7 +121,7 @@ class EventController(val thingCreatedSseFlow: MutableSharedFlow<SseEvent>,
         val accept = call.request.header(HttpHeaders.Accept)
 
         if (query.isNullOrEmpty()) {
-            throw Exception("The request body is empty.")
+            throw BadRequestException("The request body is empty.")
         }
 
         val parsedQuery = QueryFactory.create(query, Syntax.syntaxSPARQL_11)
