@@ -75,8 +75,12 @@ object TestUtils {
         }
     }
 
-    suspend fun getJsonpath(query: String, client: HttpClient): HttpResponse {
+    suspend fun getJsonpath(query: String?, client: HttpClient): HttpResponse {
         return client.get("/search/jsonpath?query=$query")
+    }
+
+    suspend fun getXpath(query: String?, client: HttpClient): HttpResponse {
+        return client.get("/search/xpath?query=$query")
     }
 
     fun assertThingDescriptionsEquals(td1: String, td2: String) {
