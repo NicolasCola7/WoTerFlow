@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicLong
  * @property thingCreatedSseFlow The flow for broadcasting "Thing Created" events.
  * @property thingUpdatedSseFlow The flow for broadcasting "Thing Updated" events.
  * @property thingDeletedSseFlow The flow for broadcasting "Thing Deleted" events.
+ * @property queryNotificationSseFlow The map of flows for broadcasting "Query Notification" events.
  */
 class EventController(val thingCreatedSseFlow: MutableSharedFlow<SseEvent>,
                       val thingUpdatedSseFlow: MutableSharedFlow<SseEvent>,
@@ -78,6 +79,7 @@ class EventController(val thingCreatedSseFlow: MutableSharedFlow<SseEvent>,
      *
      * @param eventType The [EventType] of interest.
      * @param eventData The [SseEvent] data.
+     * @param queryId The id corresponding to a [queryNotificationSseFlow] query
      */
     suspend fun notify(eventType: EventType, eventData: String, queryId: Long = 0) {
         val event = addEvent(eventType, eventData)
@@ -90,6 +92,7 @@ class EventController(val thingCreatedSseFlow: MutableSharedFlow<SseEvent>,
      *
      * @param eventType The [EventType] of interest.
      * @param event The event to emit on the stream.
+     * @param queryId The id corresponding to a [queryNotificationSseFlow] query
      */
     private suspend fun redirectEventFlow(eventType: EventType, event: SseEvent, queryId: Long = 0) {
         when (eventType) {

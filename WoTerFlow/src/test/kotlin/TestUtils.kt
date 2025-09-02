@@ -1,17 +1,18 @@
-import BaseIntegrationTest.Companion.client
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.sse.sse
+import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
+import io.ktor.http.encodeURLParameter
 import io.ktor.sse.ServerSentEvent
 import io.restassured.internal.path.json.JsonPrettifier
 import kotlinx.coroutines.CompletableDeferred
@@ -30,6 +31,10 @@ object TestUtils {
         }
     }
 
+    suspend fun deleteThingDescription(id: String, client: HttpClient): HttpResponse {
+        return client.delete("things/$id")
+    }
+
     suspend fun getThingDescription(id: String, client: HttpClient): HttpResponse {
         return client.get("things/$id")
     }
@@ -39,7 +44,7 @@ object TestUtils {
         received: CompletableDeferred<ServerSentEvent?>,
         client: HttpClient
     ) {
-        client.sse("events/query_notification", request = {
+        return client.sse("events/query_notification", request = {
             method = HttpMethod.Post
             setBody(body)
         }) {
@@ -47,6 +52,31 @@ object TestUtils {
                 if (!received.isCompleted) received.complete(event)
             }
         }
+    }
+
+    suspend fun postSparql(
+        body: String?,
+        accept: String?,
+        client: HttpClient
+    ): HttpResponse {
+        return client.post("/search/sparql") {
+            header("Accept", accept)
+            setBody(body)
+        }
+    }
+
+    suspend fun getSparql(
+        query: String?,
+        accept: String?,
+        client: HttpClient
+    ): HttpResponse {
+        return client.get("/search/sparql/?query=${query?.encodeURLParameter()}") {
+            header("Accept", accept)
+        }
+    }
+
+    suspend fun getJsonpath(query: String, client: HttpClient): HttpResponse {
+        return client.get("/search/jsonpath?query=$query")
     }
 
     fun assertThingDescriptionsEquals(td1: String, td2: String) {
@@ -60,4 +90,6 @@ object TestUtils {
             fail("Retrieved td does not matches the inserted one:\nExpected: $td1;\nGot: $json2")
         }
     }
+
+
 }

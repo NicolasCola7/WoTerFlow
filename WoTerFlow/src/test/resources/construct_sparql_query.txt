@@ -5,11 +5,13 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX schema: <http://schema.org/>
 PREFIX foaf: <http://xmlns.com/foaf/0.1/>
 
-ASK
+CONSTRUCT {
+?s td:id ?s .
+}
 WHERE {
 GRAPH ?g {
-  ?s ?p ?o .
-  FILTER( ?p IN (td:title, dcterms:title, dc:title, rdfs:label, schema:name, foaf:name) )
-  FILTER( isLiteral(?o) && str(?o) = "Garden Humidity Sensor" )
+ ?s ?p ?o .
+ FILTER( ?p IN (td:title, dcterms:title, dc:title, rdfs:label, schema:name, foaf:name) )
+ FILTER( isLiteral(?o) && str(?o) = "Garden Humidity Sensor" )
 }
 }

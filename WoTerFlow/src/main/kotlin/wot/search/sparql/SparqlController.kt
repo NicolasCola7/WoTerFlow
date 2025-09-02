@@ -14,6 +14,7 @@ import io.ktor.server.response.respond
 import org.apache.jena.query.Dataset
 import org.apache.jena.query.Query
 import org.apache.jena.query.QueryFactory
+import org.apache.jena.query.QueryParseException
 import org.apache.jena.query.Syntax
 import org.apache.jena.shared.NotFoundException
 import org.apache.jena.sparql.resultset.ResultsFormat
@@ -53,6 +54,10 @@ class SparqlController {
                 call.respond(SparqlService.executeQuery(query, format, db).toString())
             } catch (e: MissingQueryParameterException) {
                 call.respond(HttpStatusCode.BadRequest, "${e.message}")
+            } catch (e: UnsupportedSparqlQueryException) {
+                call.respond(HttpStatusCode.BadRequest, "${e.message}")
+            } catch (e: QueryParseException) {
+                call.respond(HttpStatusCode.BadRequest, "Malformed or unsupported SPARQL query")
             }catch (e: NotFoundException) {
                 call.respond(HttpStatusCode.NotFound, "Requested Thing not found")
             } catch (e: Exception) {
