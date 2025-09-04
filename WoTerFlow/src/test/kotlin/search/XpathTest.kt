@@ -1,6 +1,8 @@
+package search
+
+import BaseIntegrationTest
 import org.apache.jena.ext.com.google.common.io.Resources
 import TestUtils.deleteThingDescription
-import TestUtils.getJsonpath
 import TestUtils.getXpath
 import TestUtils.putThingDescription
 import io.ktor.client.request.get
@@ -14,7 +16,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class XpathTest: BaseIntegrationTest() {
-    private val td = Resources.getResource("td.json").readText()
+    private val td = Resources.getResource("tds/td.json").readText()
     private val thingId = "urn:uuid:0804d572-cce8-422a-bb7c-4412fcd56f06"
     private val invalidXpathQuery = "[title'Garden Humidity Sensor']"
     private val validXpathQuery = "//*[title='Garden Humidity Sensor']"

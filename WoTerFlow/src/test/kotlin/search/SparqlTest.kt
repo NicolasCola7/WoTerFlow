@@ -1,4 +1,5 @@
-
+package search
+import BaseIntegrationTest
 import TestUtils.deleteThingDescription
 import TestUtils.getSparql
 import TestUtils.postSparql
@@ -20,14 +21,14 @@ import kotlin.test.assertTrue
 
 class SparqlTest: BaseIntegrationTest(){
 
-    private val td = Resources.getResource("td.json").readText()
+    private val td = Resources.getResource("tds/td.json").readText()
     private val thingId = "urn:uuid:0804d572-cce8-422a-bb7c-4412fcd56f06"
-    private val updateQuery = Resources.getResource("update_sparql_query.txt").readText() //unsupported
-    private val invalidQuery = Resources.getResource("invalid_sparql_query.txt").readText()
-    private val validSelectQuery = Resources.getResource("select_sparql_query.txt").readText()
-    private val validAskQuery = Resources.getResource("ask_sparql_query.txt").readText()
-    private val validDescribeQuery = Resources.getResource("describe_sparql_query.txt").readText()
-    private val validConstructQuery = Resources.getResource("construct_sparql_query.txt").readText()
+    private val updateQuery = Resources.getResource("queries/update_sparql_query.txt").readText() //unsupported
+    private val invalidQuery = Resources.getResource("queries/invalid_sparql_query.txt").readText()
+    private val validSelectQuery = Resources.getResource("queries/select_sparql_query.txt").readText()
+    private val validAskQuery = Resources.getResource("queries/ask_sparql_query.txt").readText()
+    private val validDescribeQuery = Resources.getResource("queries/describe_sparql_query.txt").readText()
+    private val validConstructQuery = Resources.getResource("queries/construct_sparql_query.txt").readText()
 
     companion object {
         private val MIME_SPARQL_JSON = "application/sparql-results+json"

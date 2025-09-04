@@ -95,6 +95,8 @@ dependencies {
     // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.3")
 
+    testImplementation("org.junit.platform:junit-platform-suite")
+
     implementation("io.ktor:ktor-client-core:${ktor_version}")
 }
 

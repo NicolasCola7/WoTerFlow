@@ -1,10 +1,11 @@
+package events
 
-import TestUtils.putThingDescription
-import TestUtils.subscribeToQueryNotificationEvent
+import BaseIntegrationTest
 import io.ktor.client.plugins.sse.SSEClientException
 import io.ktor.client.plugins.sse.sse
-import io.ktor.client.request.*
-import io.ktor.http.*
+import io.ktor.client.request.setBody
+import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
 import io.ktor.sse.ServerSentEvent
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.TimeoutCancellationException
@@ -16,18 +17,22 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeout
-import kotlin.test.*
-import kotlin.time.Duration.Companion.seconds
 import org.apache.jena.ext.com.google.common.io.Resources
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
+import kotlin.test.fail
+import kotlin.time.Duration.Companion.seconds
 
 class QueryNotificationTest : BaseIntegrationTest() {
 
-    private val query = Resources.getResource("select_sparql_query.txt").readText()
-    private val askQuery = Resources.getResource("ask_sparql_query.txt").readText()
-    private val invalidQuery = Resources.getResource("invalid_sparql_query.txt").readText()
-    private val noSubjectReturnQuery = Resources.getResource("no_return_subject_select_sparql_query.txt").readText()
-    private val td = Resources.getResource("td.json").readText()
-    private val modifiedTd =  Resources.getResource("modifiedTd.json").readText()
+    private val query = Resources.getResource("queries/select_sparql_query.txt").readText()
+    private val askQuery = Resources.getResource("queries/ask_sparql_query.txt").readText()
+    private val invalidQuery = Resources.getResource("queries/invalid_sparql_query.txt").readText()
+    private val noSubjectReturnQuery = Resources.getResource("queries/no_return_subject_select_sparql_query.txt").readText()
+    private val td = Resources.getResource("tds/td.json").readText()
+    private val modifiedTd =  Resources.getResource("tds/modifiedTd.json").readText()
     private val thingId = "urn:uuid:0804d572-cce8-422a-bb7c-4412fcd56f06"
     private val queryNotificationEventType = "query_notification"
     private val thingUpdatedEventType = "thing_updated"
@@ -42,12 +47,12 @@ class QueryNotificationTest : BaseIntegrationTest() {
         val received = CompletableDeferred<ServerSentEvent?>()
 
         val sseJob = launch {
-            subscribeToQueryNotificationEvent(query, received, client)
+            TestUtils.subscribeToQueryNotificationEvent(query, received, client)
         }
 
         delay(SSE_SETUP_DELAY)
 
-        putThingDescription(td, thingId, client)
+        TestUtils.putThingDescription(td, thingId, client)
 
         try {
             val event = withTimeout(EVENT_TIMEOUT) { received.await() }
@@ -61,8 +66,8 @@ class QueryNotificationTest : BaseIntegrationTest() {
                 event.event,
                 "Event type does not matches expected type."
             )
-        } catch(e: TimeoutCancellationException) {
-            fail("No event received" )
+        } catch (e: TimeoutCancellationException) {
+            fail("No event received")
         } finally {
             sseJob.cancelAndJoin()
         }
@@ -76,16 +81,16 @@ class QueryNotificationTest : BaseIntegrationTest() {
         val received2 = CompletableDeferred<ServerSentEvent?>()
 
         val sseJob1 = launch {
-            subscribeToQueryNotificationEvent(query, received1, client)
+            TestUtils.subscribeToQueryNotificationEvent(query, received1, client)
         }
 
         val sseJob2 = launch {
-            subscribeToQueryNotificationEvent(query, received2, secondClient)
+            TestUtils.subscribeToQueryNotificationEvent(query, received2, secondClient)
         }
 
         delay(SSE_SETUP_DELAY)
 
-        putThingDescription(td, thingId, client)
+        TestUtils.putThingDescription(td, thingId, client)
 
         try {
             val event1 = withTimeout(EVENT_TIMEOUT) { received1.await() }
@@ -110,8 +115,8 @@ class QueryNotificationTest : BaseIntegrationTest() {
                 event1.event,
                 "Event type does not matches expected type."
             )
-        } catch(e: TimeoutCancellationException) {
-            fail("No event received" )
+        } catch (e: TimeoutCancellationException) {
+            fail("No event received")
         } finally {
             sseJob1.cancelAndJoin()
             sseJob2.cancelAndJoin()
@@ -124,18 +129,18 @@ class QueryNotificationTest : BaseIntegrationTest() {
         val received = CompletableDeferred<ServerSentEvent?>()
 
         val sseJob = launch {
-            subscribeToQueryNotificationEvent(query, received, client)
+            TestUtils.subscribeToQueryNotificationEvent(query, received, client)
         }
 
         delay(SSE_SETUP_DELAY)
 
-        putThingDescription(modifiedTd, thingId, client)
+        TestUtils.putThingDescription(modifiedTd, thingId, client)
 
         try {
             val event = withTimeout(EVENT_TIMEOUT) { received.await() }
             fail("Received event $event when none was expected")
-        } catch(e: TimeoutCancellationException) {
-           // the test is considered passed if the timeout exceeded
+        } catch (e: TimeoutCancellationException) {
+            // the test is considered passed if the timeout exceeded
         } finally {
             sseJob.cancelAndJoin()
         }
@@ -146,12 +151,16 @@ class QueryNotificationTest : BaseIntegrationTest() {
         val received = CompletableDeferred<ServerSentEvent?>()
 
         val sseJob = launch {
-            subscribeToQueryNotificationEvent(noSubjectReturnQuery, received, client)
+            TestUtils.subscribeToQueryNotificationEvent(
+                noSubjectReturnQuery,
+                received,
+                client
+            )
         }
 
         delay(SSE_SETUP_DELAY)
 
-        putThingDescription(td, thingId, client)
+        TestUtils.putThingDescription(td, thingId, client)
 
         try {
             val event = withTimeout(EVENT_TIMEOUT) { received.await() }
@@ -165,8 +174,8 @@ class QueryNotificationTest : BaseIntegrationTest() {
                 event.event,
                 "Event type does not matches expected type."
             )
-        } catch(e: TimeoutCancellationException) {
-            fail("No event received" )
+        } catch (e: TimeoutCancellationException) {
+            fail("No event received")
         } finally {
             sseJob.cancelAndJoin()
         }
@@ -180,7 +189,11 @@ class QueryNotificationTest : BaseIntegrationTest() {
         val allEventsReceived = CompletableDeferred<List<ServerSentEvent?>>()
 
         val queryNotificationJob = launch {
-            subscribeToQueryNotificationEvent(query, queryNotificationReceived, client)
+            TestUtils.subscribeToQueryNotificationEvent(
+                query,
+                queryNotificationReceived,
+                client
+            )
         }
 
         val allEventsJob = launch {
@@ -195,7 +208,7 @@ class QueryNotificationTest : BaseIntegrationTest() {
 
         delay(SSE_SETUP_DELAY)
 
-        putThingDescription(td, thingId, client)
+        TestUtils.putThingDescription(td, thingId, client)
 
         try {
             val queryNotificationChannelEvent = withTimeout(EVENT_TIMEOUT) { queryNotificationReceived.await() }
@@ -222,8 +235,8 @@ class QueryNotificationTest : BaseIntegrationTest() {
                     "Expected different event type. Got:  ${event.event}; Expected: $queryNotificationEventType or $thingUpdatedEventType"
                 )
             }
-        } catch(e: TimeoutCancellationException) {
-            fail("No event received" )
+        } catch (e: TimeoutCancellationException) {
+            fail("No event received")
         } finally {
             queryNotificationJob.cancelAndJoin()
             allEventsJob.cancelAndJoin()
@@ -234,40 +247,40 @@ class QueryNotificationTest : BaseIntegrationTest() {
     fun testWithEmptyBody() = runTest {
         val exception = assertFailsWith<SSEClientException> {
             client.sse("events/query_notification", request = {
-                method = HttpMethod.Post
+                method = HttpMethod.Companion.Post
             }) {
                 fail("SSE connection should have failed")
             }
         }
 
-        assertEquals(HttpStatusCode.BadRequest, exception.response?.status)
+        assertEquals(HttpStatusCode.Companion.BadRequest, exception.response?.status)
     }
 
     @Test
     fun testWithUnsupportedQuery() = runTest {
         val exception = assertFailsWith<SSEClientException> {
             client.sse("events/query_notification", request = {
-                method = HttpMethod.Post
+                method = HttpMethod.Companion.Post
                 setBody(askQuery)
             }) {
                 fail("SSE connection should have failed")
             }
         }
 
-        assertEquals(HttpStatusCode.BadRequest, exception.response?.status)
+        assertEquals(HttpStatusCode.Companion.BadRequest, exception.response?.status)
     }
 
     @Test
     fun testWithInvalidQuery() = runTest {
         val exception = assertFailsWith<SSEClientException> {
             client.sse("events/query_notification", request = {
-                method = HttpMethod.Post
+                method = HttpMethod.Companion.Post
                 setBody(invalidQuery)
             }) {
                 fail("SSE connection should have failed")
             }
         }
 
-        assertEquals(HttpStatusCode.InternalServerError, exception.response?.status)
+        assertEquals(HttpStatusCode.Companion.InternalServerError, exception.response?.status)
     }
 }
