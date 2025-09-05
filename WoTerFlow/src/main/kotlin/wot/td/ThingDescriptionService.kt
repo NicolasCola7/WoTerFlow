@@ -366,7 +366,8 @@ class ThingDescriptionService(dbRdf: Dataset, private val thingsMap: MutableMap<
     private fun removeEmptyProperties(objectNode: ObjectNode) {
         val fieldsToRemove = mutableListOf<String>()
 
-        objectNode.fields().forEach { (fieldName, fieldValue)  ->
+        objectNode.fieldNames().forEach { fieldName ->
+            val fieldValue = objectNode.get(fieldName)
             if (fieldValue.isNull) {
                 fieldsToRemove.add(fieldName)
             } else if (fieldValue.isObject) {
@@ -495,6 +496,7 @@ class ThingDescriptionService(dbRdf: Dataset, private val thingsMap: MutableMap<
      * @return The ID of the patched resource.
      * @throws Exception If an error occurs during the execution of the action, the transaction is aborted, and the error is propagated.
      */
+
     private inline fun Dataset.patchWithTransaction(action: () -> String) : String {
         this.begin(TxnType.WRITE)
         return try {

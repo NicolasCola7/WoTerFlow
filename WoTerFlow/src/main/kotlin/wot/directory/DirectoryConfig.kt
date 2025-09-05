@@ -1,6 +1,6 @@
 package wot.directory
 
-import org.apache.jena.ext.com.google.common.io.Resources
+import com.google.common.io.Resources
 
 /**
  * Represents a [Directory] configuration

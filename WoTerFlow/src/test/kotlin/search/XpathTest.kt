@@ -1,7 +1,7 @@
 package search
 
 import BaseIntegrationTest
-import org.apache.jena.ext.com.google.common.io.Resources
+import com.google.common.io.Resources
 import TestUtils.deleteThingDescription
 import TestUtils.getXpath
 import TestUtils.putThingDescription

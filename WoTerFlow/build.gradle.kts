@@ -39,10 +39,10 @@ dependencies {
     // https://mvnrepository.com/artifact/org.apache.jena/jena-fuseki
     //implementation("org.apache.jena:jena-fuseki-main:$jena_version")
 
-
     //  JSONLD
     // https://mvnrepository.com/artifact/com.apicatalog/titanium-json-ld
-    //implementation("com.apicatalog:titanium-json-ld:1.3.2")
+    //implementation("com.apicatalog:titanium-json-ld:1.6.0")
+
     // modified titanium-json-ld version
     implementation(files("libs/titanium-json-ld-1.4.1-dr-snapshot.jar"))
 
@@ -52,7 +52,6 @@ dependencies {
 
     // https://mvnrepository.com/artifact/io.ktor/ktor-server-cio
     implementation("io.ktor:ktor-server-cio:$ktor_version")
-
 
     // https://mvnrepository.com/artifact/io.ktor/ktor-server-call-logging
     implementation("io.ktor:ktor-server-call-logging:$ktor_version")
@@ -69,33 +68,35 @@ dependencies {
 
     // XPath
     // https://mvnrepository.com/artifact/net.sf.saxon/Saxon-HE
-    implementation("net.sf.saxon:Saxon-HE:12.3")
+    implementation("net.sf.saxon:Saxon-HE:12.8")
 
     // https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.15.3")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.20.0")
 
     // https://mvnrepository.com/artifact/ch.qos.logback/logback-classic
-    implementation("ch.qos.logback:logback-classic:1.5.13")
+    implementation("ch.qos.logback:logback-classic:1.5.18")
 
+    // Guava
+    implementation("com.google.guava:guava:32.1.3-jre")
 
     //  TESTING
     testImplementation(kotlin("test"))
+
     testImplementation("io.ktor:ktor-server-test-host:${ktor_version}")
+
     // Rest Assured
     // https://mvnrepository.com/artifact/io.rest-assured/rest-assured
-    testImplementation("io.rest-assured:rest-assured:5.3.0")
+    testImplementation("io.rest-assured:rest-assured:5.5.6")
 
     // https://mvnrepository.com/artifact/io.rest-assured/json-path
-    testImplementation("io.rest-assured:json-path:5.3.0")
+    testImplementation("io.rest-assured:json-path:5.5.6")
 
     // https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
-    testImplementation("com.squareup.okhttp3:okhttp:4.11.0")
+    testImplementation("com.squareup.okhttp3:okhttp:5.1.0")
 
     // JUnit
     // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.3")
-
-    testImplementation("org.junit.platform:junit-platform-suite")
 
     implementation("io.ktor:ktor-client-core:${ktor_version}")
 }

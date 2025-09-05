@@ -4,7 +4,7 @@ import BaseIntegrationTest
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
-import org.apache.jena.ext.com.google.common.io.Resources
+import com.google.common.io.Resources
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

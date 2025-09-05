@@ -11,7 +11,7 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.encodeURLParameter
 import kotlinx.coroutines.test.runTest
-import org.apache.jena.ext.com.google.common.io.Resources
+import com.google.common.io.Resources
 import org.junit.jupiter.api.BeforeEach
 import kotlin.test.Test
 import kotlin.test.assertEquals

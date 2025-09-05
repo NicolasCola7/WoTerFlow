@@ -17,7 +17,6 @@ open class BaseIntegrationTest {
         fun setup() = runBlocking {
             if (::testApplication.isInitialized) return@runBlocking
 
-            println("STARTING TEST APPLICATION...")
             testApplication = TestApplication {
                 application {
                     module(testDataDir)

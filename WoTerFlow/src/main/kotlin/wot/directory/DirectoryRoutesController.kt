@@ -2,7 +2,6 @@ package wot.directory
 
 import exceptions.UnsupportedSparqlQueryException
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.call
 import io.ktor.server.plugins.BadRequestException
 import io.ktor.server.response.respondRedirect
 import io.ktor.server.response.respond
