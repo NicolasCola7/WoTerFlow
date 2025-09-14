@@ -11,6 +11,7 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpMethod
 import io.ktor.http.ContentType
+import io.ktor.http.DEFAULT_PORT
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.plugins.BadRequestException
 import io.ktor.server.request.httpMethod
@@ -23,16 +24,22 @@ import org.apache.jena.atlas.lib.NotImplemented
 import org.apache.jena.shared.NotFoundException
 import utils.Utils
 import wot.directory.DirectoryConfig
+import wot.events.BaseEventNotifierDecorator
+import wot.events.DefaultEventNotifier
 import wot.events.EventController
 import wot.events.EventType
+import wot.events.QueryNotificationDecorator
 
 /**
  * Controller responsible for managing Thing Descriptions.
  *
  * @param service The [ThingDescriptionService] to use to execute operations on [Thing Descriptions](https://www.w3.org/TR/wot-thing-description/#introduction-td)
- * @param eventController The [EventController] to handle the Server-Sent Events (SSE)
+ * @param defaultEventNotifier The [DefaultEventNotifier] to handle the Server-Sent Events (SSE)
  */
-class ThingDescriptionController(service: ThingDescriptionService, private val eventController: EventController) {
+class ThingDescriptionController(
+    service: ThingDescriptionService,
+    private val defaultEventNotifier: DefaultEventNotifier
+) {
 
     private val ts = service
 
@@ -198,8 +205,8 @@ class ThingDescriptionController(service: ThingDescriptionService, private val e
                 call.response.header(HttpHeaders.Location, pair.first)
                 call.respond(HttpStatusCode.Created)
 
-                eventController.notify(EventType.THING_CREATED, "{\n\"id\": \"${pair.first}\"\n}")
-                executeAndNotifyQueries(pair.first)
+                val queryNotificationEventNotifier = QueryNotificationDecorator(defaultEventNotifier, ts)
+                queryNotificationEventNotifier.notify(EventType.THING_CREATED, pair.first)
             }
         }.onFailure { e ->
             handleException(e, call)
@@ -213,6 +220,7 @@ class ThingDescriptionController(service: ThingDescriptionService, private val e
      */
     suspend fun updateThing(call: ApplicationCall) {
         runCatching {
+            val id = Utils.hasValidId(call.parameters["id"])
             val request = call.request
 
             if (!Utils.hasJsonContent(request.header(HttpHeaders.ContentType))) {
@@ -225,32 +233,25 @@ class ThingDescriptionController(service: ThingDescriptionService, private val e
             val thing = Utils.hasBody(call.receive())
 
             if (thing != null) {
-/*
-                val requestBodyId = thing.get("@id")?.takeIf { it.isTextual }?.asText()
-                    ?: thing.get("id")?.takeIf { it.isTextual }?.asText()
-
-
-                if (requestBodyId != null) {
-                    //throw ThingException("The thing must NOT have a 'id' or '@id' property")
-                }
-*/
-
-                val thingUpdate = ts.updateThing(thing)
+                val thingUpdate = ts.updateThing(thing, id)
                 val thingId = thingUpdate.first
                 val thingExists = thingUpdate.second
 
                 call.response.header(HttpHeaders.Location, thingId)
 
+                var eventType: EventType
+
                 if (!thingExists) {
                     call.respond(HttpStatusCode.Created)
-                    eventController.notify(EventType.THING_CREATED, "{ \n\"id\": \"${thingUpdate.first}\" }")
+                    eventType = EventType.THING_CREATED
                 }
                 else {
                     call.respond(HttpStatusCode.NoContent)
-                    eventController.notify(EventType.THING_UPDATED, "{ \n\"id\": \"${thingUpdate.first}\" }")
+                    eventType = EventType.THING_UPDATED
                 }
 
-                executeAndNotifyQueries(thingUpdate.first)
+                val queryNotificationEventNotifier = QueryNotificationDecorator(defaultEventNotifier, ts)
+                queryNotificationEventNotifier.notify(eventType, thingId)
             }
         }.onFailure { e ->
             handleException(e, call)
@@ -281,8 +282,9 @@ class ThingDescriptionController(service: ThingDescriptionService, private val e
                 call.response.header(HttpHeaders.Location, thingId)
 
                 call.respond(HttpStatusCode.NoContent)
-                eventController.notify(EventType.THING_UPDATED, "{ \n\"id\": \"${thingId}\" }")
-                executeAndNotifyQueries(id)
+
+                val queryNotificationEventNotifier = QueryNotificationDecorator(defaultEventNotifier, ts)
+                queryNotificationEventNotifier.notify(EventType.THING_UPDATED, thingId)
             }
         }.onFailure { e ->
             handleException(e, call)
@@ -302,40 +304,14 @@ class ThingDescriptionController(service: ThingDescriptionService, private val e
         runCatching {
             ts.deleteThingById(id)
             call.respond(HttpStatusCode.NoContent)
-            eventController.notify(EventType.THING_DELETED, "{ \n\"id\": \"${id}\" }")
+
+            /* I'm not wrapping the DefaultEventNotifier inside a QueryNotificationDecorator
+               since, if the td has been eliminated, there won't be any query result matching
+               the thing's id
+             */
+            defaultEventNotifier.notify(EventType.THING_DELETED, id)
         }.onFailure { e ->
             handleException(e, call)
-        }
-    }
-
-    /**
-     * Executes all queries and notify the corresponding SSE flow if the query's result matches the td's id
-     *
-     * @param thingId the id of td the query result should match
-     */
-    suspend fun executeAndNotifyQueries(thingId: String) {
-        for (id in eventController.queries.keys) {
-            val query = eventController.queries[id]
-            val stringQueryResult = ts.executeNotificationQuery(query!!)
-            val jsonQueryResult = Utils.toJson(stringQueryResult)
-
-            val bindings = jsonQueryResult.get("results").get("bindings")
-            if (bindings.isEmpty) {
-                continue
-            }
-
-            for (td in bindings) {
-                val resultTdId = td.get("s").get("value").asText()
-
-                if (resultTdId.equals(thingId)) {
-                    eventController.notify(
-                        EventType.QUERY_NOTIFICATION,
-                        "{ \n\"id\": \"${thingId}\" }",
-                        id
-                    )
-                    break
-                }
-            }
         }
     }
 

@@ -21,6 +21,7 @@ import org.slf4j.event.Level
 import utils.Utils
 import wot.directory.Directory
 import wot.directory.DirectoryRoutesController
+import wot.events.DefaultEventNotifier
 import wot.events.EventController
 import wot.events.SseEvent
 import wot.td.ThingDescriptionController
@@ -66,8 +67,9 @@ fun Application.module(dataDirectory: String = "data/tdb-data") {
         queryNotificationSseFlow
     )
 
+    val defaultEventNotifier = DefaultEventNotifier(eventController)
     val ts = ThingDescriptionService(rdf_db, thingsMap)
-    val tc = ThingDescriptionController(ts, eventController)
+    val tc = ThingDescriptionController(ts, defaultEventNotifier)
 
     val directory = Directory(rdf_db, thingsMap, tc, eventController)
 
