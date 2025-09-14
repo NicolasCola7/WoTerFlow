@@ -148,16 +148,19 @@ class ThingDescriptionService(dbRdf: Dataset, private val thingsMap: MutableMap<
      * The [UUID] is returned along with the updated TD containing the assigned [UUID].
      *
      * @param td The Anonymous [Thing Description](https://www.w3.org/TR/wot-thing-description/#introduction-td) to be inserted.
+     * @param id the thing id inserted in the url
      *
      * @return A [Pair] containing the generated [UUID] and the updated TD with the assigned [UUID].
      * @throws Exception If an error occurs during the operation, the transaction is aborted, and the error is propagated.
      */
-    fun updateThing(td: ObjectNode): Pair<String, Boolean> {
-        val id: String = td.get("@id")?.takeIf { it.isTextual }?.asText()
+    fun updateThing(td: ObjectNode, id: String): Pair<String, Boolean> {
+        val tdBodyId: String = td.get("@id")?.takeIf { it.isTextual }?.asText()
             ?: td.get("id")?.takeIf { it.isTextual }?.asText()
             ?: throw BadRequestException("Invalid or missing @id field in the JSON body.")
 
         val graphId = Utils.strconcat(DirectoryConfig.GRAPH_PREFIX, id)
+
+        if(id != tdBodyId) throw ThingException("Id in the url does not corresponds to the id in the request's body")
 
         synchronized(this) {
             val existsAlready = checkIfThingExists(id)
@@ -207,17 +210,22 @@ class ThingDescriptionService(dbRdf: Dataset, private val thingsMap: MutableMap<
      * Partially Updates a [Thing Description](https://www.w3.org/TR/wot-thing-description/#introduction-td) into the RDF [Dataset] and returns the updated [UUID].
      *
      * @param td The Anonymous [Thing Description](https://www.w3.org/TR/wot-thing-description/#introduction-td) to be inserted.
+     * @param id the thing id inserted in the url
      *
      * @return A [String] containing the [UUID] of the updated TD.
      * @throws Exception If an error occurs during the operation, the transaction is aborted, and the error is propagated.
      */
     fun patchThing(td: ObjectNode, id: String): String {
-        val graphId = Utils.strconcat(DirectoryConfig.GRAPH_PREFIX, id)
-        synchronized(this) {
+        val tdBodyId = td.get("@id")?.takeIf { it.isTextual }?.asText()
+            ?: td.get("id")?.takeIf { it.isTextual }?.asText()
 
+        val graphId = Utils.strconcat(DirectoryConfig.GRAPH_PREFIX, id)
+
+        if(tdBodyId != null) throw ThingException("You can not modify the thing id")
+
+        synchronized(this) {
             return runCatching {
                 rdfDataset.patchWithTransaction {
-
                     val thing = retrieveThingById(id)
                         ?: throw ThingException("Thing with id: $graphId does not exist.")
 

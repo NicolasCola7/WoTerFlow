@@ -6,6 +6,7 @@ import io.ktor.client.plugins.sse.sse
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
@@ -26,6 +27,13 @@ object TestUtils {
 
     suspend fun putThingDescription(td: String, id: String, client: HttpClient): HttpResponse {
          return client.put("things/$id") {
+            header(HttpHeaders.ContentType, "application/td+json")
+            setBody(td)
+        }
+    }
+
+    suspend fun patchThingDescription(td: String, id: String, client: HttpClient): HttpResponse {
+        return client.patch("things/$id") {
             header(HttpHeaders.ContentType, "application/td+json")
             setBody(td)
         }
@@ -85,13 +93,20 @@ object TestUtils {
 
     fun assertThingDescriptionsEquals(td1: String, td2: String) {
         val objectNode1 = jsonMapper.readValue<ObjectNode>(td1)
+        val objectNode2 = jsonMapper.readValue<ObjectNode>(td2)
+        objectNode2.remove("registration") // removes registration infos
+
         val rdfModel1 = converter.toRdf(converter.toJsonLd11(objectNode1).toString())
-        val rdfModel2 = converter.toRdf(td2)
+        val rdfModel2 = converter.toRdf(converter.toJsonLd11(objectNode2).toString())
 
         if(!rdfModel1.isIsomorphicWith(rdfModel2)) {
-            val json2 =  JsonPrettifier.prettifyJson(td2)
+            var json1 = jsonMapper.writeValueAsString(objectNode1)
+            json1 =  JsonPrettifier.prettifyJson(json1)
 
-            fail("Retrieved td does not matches the inserted one:\nExpected: $td1;\nGot: $json2")
+            var json2 = jsonMapper.writeValueAsString(objectNode2)
+            json2 =  JsonPrettifier.prettifyJson(json2)
+
+            fail("Retrieved td does not matches the inserted one:\nExpected: $json1;\nGot: $json2")
         }
     }
 
