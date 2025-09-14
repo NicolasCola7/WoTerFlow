@@ -5,10 +5,6 @@
   "id": "urn:uuid:0804d572-cce8-422a-bb7c-4412fcd56f06",
   "title": "Garden Humidity Sensor",
   "description": "Measures relative humidity in the garden area",
-  "registration": {
-    "created": "2025-08-11T14:56:12.769340800Z",
-    "modified": "2025-08-11T14:56:12.769340800Z"
-  },
   "securityDefinitions": {
     "nosec_sc": {
       "scheme": "nosec"

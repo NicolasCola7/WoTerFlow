@@ -1,6 +1,7 @@
 {
   "@context": "https://www.w3.org/2022/wot/td/v1.1",
   "@type": "Thing",
+  "@version": "1.1",
   "id": "urn:uuid:0804d572-cce8-422a-bb7c-4412fcd56f06",
   "title": "Modified Title",
   "description": "Measures relative humidity in the garden area",
