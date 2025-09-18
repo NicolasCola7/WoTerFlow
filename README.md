@@ -30,6 +30,7 @@ The main goal of this implementation is to provide a high-performance and system
   - [x] Creation Event
   - [x] Update Event
   - [x] Deletion Event
+  - [x] Query Notification Event
   - [ ] Diff support
 - [x] Search API
   - [x] Syntactic search: JSONPath
@@ -57,11 +58,12 @@ The main goal of this implementation is to provide a high-performance and system
 ### [Events APIs Endpoints](https://w3c.github.io/wot-discovery/#exploration-directory-api-notification)
 | API Endpoint            | Method | Headers | Reference                                                                                          | Description                                                                                                                                                                                                                                                                                                                    |
 |-------------------------|--------|---------|----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `/events`               | `GET`  | `n/a`   | [Events Notification](https://w3c.github.io/wot-discovery/#exploration-directory-api-notification) | Subscribes to `all` the events (`creation`, `update`, `deletion`) notification supported by the server. The events are streamed via [Server-Sent Events (SSE)](https://www.w3.org/TR/2009/WD-eventsource-20091222/). Whenever a stored Thing Description is `created`/`updated`/`deleted` a notification will be sent via SSE. | 
+| `/events`               | `GET`  | `n/a`   | [Events Notification](https://w3c.github.io/wot-discovery/#exploration-directory-api-notification) | Subscribes to `all` the events (`creation`, `update`, `deletion`, `query`) notification supported by the server. The events are streamed via [Server-Sent Events (SSE)](https://www.w3.org/TR/2009/WD-eventsource-20091222/). Whenever a stored Thing Description is `created`/`updated`/`deleted` a notification will be sent via SSE. | 
 | `/events/thing_created` | `GET`  | `n/a`   | [Events Notification](https://w3c.github.io/wot-discovery/#exploration-directory-api-notification) | Subscribes to the `cretion` events notification. The events are streamed via [Server-Sent Events (SSE)](https://www.w3.org/TR/2009/WD-eventsource-20091222/). Whenever a stored Thing Description is `created` a notification will be sent via SSE.                                                                            |
 | `/events/thing_updated` | `GET`  | `n/a`   | [Events Notification](https://w3c.github.io/wot-discovery/#exploration-directory-api-notification) | Subscribes to the `update` events notification. The events are streamed via [Server-Sent Events (SSE)](https://www.w3.org/TR/2009/WD-eventsource-20091222/). Whenever a stored Thing Description is `updated` a notification will be sent via SSE.                                                                             |
 | `/events/thing_deleted` | `GET`  | `n/a`   | [Events Notification](https://w3c.github.io/wot-discovery/#exploration-directory-api-notification) | Subscribes to the `deletion` events notification. The events are streamed via [Server-Sent Events (SSE)](https://www.w3.org/TR/2009/WD-eventsource-20091222/). Whenever a stored Thing Description is `deleted` a notification will be sent via SSE.                                                                           |
-
+| `/events/query_notification` | `POST` | `n/a` | Custom Implementation | Subscribes to the `query` events notification. The events are streamed via [Server-Sent Events (SSE)](https://www.w3.org/TR/2009/WD-eventsource-20091222/). Whenever a Thing Description is created or updated all the queries posted will be executed and, if their results matches the Thing Description's id, a notification will be sent via SSE to the corresponding `query` channel.
+                      |          
 ### [Search APIs Endpoints](https://w3c.github.io/wot-discovery/#exploration-directory-api-search)
 | API Endpoint              | Method | Headers                                                                                                                                       | Reference                                                                            | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 |---------------------------|--------|-----------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -72,9 +74,11 @@ The main goal of this implementation is to provide a high-performance and system
 | `/search/xpath{query}`    | `GET`  | `Accept:` `application/sparql-results+json` or `application/sparql-results+xml` or `text/csv` or `text/tab-separated-values` or `text/turtle` | [Syntactic Search: XPath](https://w3c.github.io/wot-discovery/#xpath-semantic)       | Solves the search of Thing Descriptions via a `XPath` query (following the [XPath query standards](https://www.w3.org/TR/xpath-31/)). Query results are sent as response in `JSON` format.                                                                                                                                                                                                                                                                                                                                                |
 
 
-## Development
-
-### Testing Suite
+## Testing
 
 This project has been tested via the testing suite at the following repository: [_NicolasCola7:
 WoTerFlow-testing_](https://github.com/NicolasCola7/WoTerFlow-testing)
+
+To cover the test cases not included in the testing suite, additional tests are implemented [ here ](https://github.com/NicolasCola7/WoTerFlow/tree/main/WoTerFlow/src/test/kotlin).
+To run them , run `./gradlew test`.
+
